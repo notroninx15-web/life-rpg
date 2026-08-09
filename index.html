@@ -1,20 +1,256 @@
 <!doctype html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0b1020"><link rel="manifest" href="manifest.json"><title>Life RPG</title>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b1020">
+<link rel="manifest" href="manifest.json">
+<title>Life RPG V1.5</title>
 <style>
-body{margin:0;background:#090d18;color:#f8fafc;font-family:system-ui;padding:16px}.app{max-width:760px;margin:auto}.card{background:#12192a;border:1px solid #25314a;border-radius:18px;padding:16px;margin:12px 0}.row{display:flex;justify-content:space-between;align-items:center}.muted{color:#94a3b8;font-size:13px}.level{font-size:42px;font-weight:900}.bar{height:12px;background:#263249;border-radius:99px;overflow:hidden}.fill{height:100%;width:0;background:#8b5cf6}.quest{padding:12px 0;border-bottom:1px solid #25314a;display:flex;gap:10px;align-items:center}.quest input{width:20px;height:20px;accent-color:#8b5cf6}.xp{margin-left:auto;color:#c4b5fd;font-weight:800}button,input{padding:10px;border-radius:10px;border:1px solid #334155}input{background:#0a1020;color:white}button{background:#8b5cf6;color:white;font-weight:800;border:0}form{display:grid;grid-template-columns:1fr 70px auto;gap:7px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.stat{background:#0e1524;padding:12px;border-radius:12px}.big{font-size:24px;font-weight:900}@media(max-width:500px){form{grid-template-columns:1fr 65px auto}}
-</style></head><body><div class="app">
-<h1>⚔️ LIFE RPG</h1><div class="muted">Your real life is the game.</div>
-<div class="card"><div class="row"><div><div class="muted">PLAYER</div><div class="big" id="name">Ronin</div></div><div><div class="muted">LEVEL</div><div class="level" id="level">1</div></div></div><div class="bar"><div class="fill" id="fill"></div></div><div class="row muted"><span id="xp">0 / 100 XP</span><span id="total">Total: 0 XP</span></div></div>
-<div class="stats"><div class="stat"><div class="muted">🔥 STREAK</div><div class="big" id="streak">0</div></div><div class="stat"><div class="muted">⚔️ TODAY</div><div class="big" id="today">0</div></div><div class="stat"><div class="muted">🏆 DONE</div><div class="big" id="done">0</div></div></div>
-<div class="card"><div class="row"><h2>⚔️ Today's Quests</h2><button onclick="rename()">Player</button></div><div id="quests"></div><form onsubmit="add(event)"><input id="qn" placeholder="New quest" required><input id="qx" type="number" min="1" max="100" value="10" required><button>Add</button></form></div>
-<div class="card"><h2>🏆 Achievements</h2><div id="ach"></div></div>
-<div class="card"><button onclick="backup()">Export Backup</button> <button onclick="restore()">Import Backup</button> <button onclick="reset()">Reset</button></div>
-<div class="muted" style="text-align:center">Life RPG V1</div>
+:root{--bg:#090d18;--card:#12192a;--card2:#0e1524;--line:#25314a;--text:#f8fafc;--muted:#94a3b8;--accent:#8b5cf6;--accent2:#c4b5fd;--good:#22c55e;--danger:#ef4444}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at top,#18203a 0,#090d18 48%);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;min-height:100vh}
+.app{max-width:780px;margin:auto;padding:16px}
+header{padding:8px 0 14px}.brand{font-size:28px;font-weight:950}.subtitle{color:var(--muted);font-size:13px;margin-top:3px}
+.card{background:rgba(18,25,42,.96);border:1px solid var(--line);border-radius:20px;padding:16px;margin:12px 0;box-shadow:0 12px 30px rgba(0,0,0,.18)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px}.label{font-size:11px;color:var(--muted);letter-spacing:.08em}.big{font-size:28px;font-weight:900}.level{font-size:42px;font-weight:950}
+.xpbar{height:13px;background:#263249;border-radius:99px;overflow:hidden;margin:12px 0 6px}.xpfill{height:100%;width:0;background:linear-gradient(90deg,#7c3aed,#a78bfa);transition:width .25s}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.stat{background:var(--card2);border:1px solid var(--line);border-radius:15px;padding:13px}.stat .value{font-size:22px;font-weight:850;margin-top:3px}
+h2{font-size:18px;margin:0 0 8px}.quest{display:flex;align-items:center;gap:11px;padding:12px 0;border-bottom:1px solid var(--line)}.quest:last-child{border-bottom:0}
+.quest input{width:21px;height:21px;accent-color:var(--accent)}.quest.done .quest-name{text-decoration:line-through;color:#64748b}.quest-name{font-weight:700}.xp{margin-left:auto;color:var(--accent2);font-weight:850;white-space:nowrap}
+.badge{display:inline-block;background:#202a40;color:#cbd5e1;border-radius:999px;padding:4px 7px;font-size:10px;margin-top:4px}
+form{display:grid;grid-template-columns:1fr 75px auto;gap:8px;margin-top:12px}
+input[type=text],input[type=number],select{min-width:0;width:100%;padding:11px;border-radius:11px;border:1px solid #334155;background:#0a1020;color:white;outline:none}
+input:focus,select:focus{border-color:var(--accent)}
+button{border:0;border-radius:11px;padding:11px 14px;font-weight:800;color:white;background:var(--accent);cursor:pointer}
+button.secondary{background:#26324a}button.danger{background:#7f1d1d}button.small{padding:7px 9px;font-size:12px}
+.buttons{display:flex;flex-wrap:wrap;gap:8px}.notice{padding:10px 12px;border-radius:12px;background:#171f33;color:#cbd5e1;font-size:13px}
+.manager-row{padding:12px 0;border-bottom:1px solid var(--line)}.manager-row:last-child{border-bottom:0}
+.manager-main{display:flex;align-items:center;gap:10px}.manager-name{font-weight:750;flex:1;min-width:0}
+.manager-actions{display:flex;gap:5px;margin-top:8px}.manager-actions button{flex:1}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:flex-end;justify-content:center;padding:10px;z-index:20}
+.modal.open{display:flex}.modal-box{width:min(760px,100%);background:#12192a;border:1px solid var(--line);border-radius:22px;padding:16px;max-height:90vh;overflow:auto}
+.formgrid{display:grid;grid-template-columns:1fr 100px;gap:9px}.formgrid .full{grid-column:1/-1}
+.footer{text-align:center;color:#64748b;font-size:11px;padding:18px 0}
+@media(max-width:560px){.app{padding:11px}.stats{grid-template-columns:1fr 1fr 1fr}.big{font-size:24px}.level{font-size:36px}form{grid-template-columns:1fr 70px auto}.manager-actions button{padding:8px 6px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header><div class="brand">⚔️ LIFE RPG</div><div class="subtitle">Your real life is the game. Complete quests. Earn XP. Level up.</div></header>
+
+<section class="card">
+  <div class="row">
+    <div><div class="label">PLAYER</div><div class="big" id="playerName">Ronin</div></div>
+    <div style="text-align:right"><div class="label">LEVEL</div><div class="level" id="level">1</div></div>
+  </div>
+  <div class="xpbar"><div class="xpfill" id="xpFill"></div></div>
+  <div class="row"><span class="label" id="xpText">0 / 100 XP</span><span class="label" id="totalXp">Total XP: 0</span></div>
+</section>
+
+<section class="stats">
+  <div class="stat"><div class="label">🔥 STREAK</div><div class="value" id="streak">0</div><small>days</small></div>
+  <div class="stat"><div class="label">⚔️ TODAY</div><div class="value" id="todayXp">0</div><small>XP</small></div>
+  <div class="stat"><div class="label">🏆 QUESTS</div><div class="value" id="todayDone">0</div><small>done today</small></div>
+</section>
+
+<section class="card">
+  <div class="row"><h2>⚔️ Today's Quests</h2><button class="secondary" id="playerBtn">Player</button></div>
+  <div id="quests"></div>
+  <form id="quickForm">
+    <input id="quickName" type="text" placeholder="Quick add a quest" required>
+    <input id="quickXp" type="number" min="1" max="100" value="10" required>
+    <button>Add</button>
+  </form>
+  <div class="notice" style="margin-top:10px">Need to change an existing quest? Use <b>⚙️ Manage Quests</b> below.</div>
+</section>
+
+<section class="card">
+  <div class="row"><h2>⚙️ Quest Manager</h2><button id="openManager">Manage</button></div>
+  <div class="notice">Create, edit, delete, reorder, and categorize your quests directly inside the app. No GitHub changes are needed.</div>
+</section>
+
+<section class="card">
+  <h2>🏆 Achievements</h2>
+  <div id="achievements"></div>
+</section>
+
+<section class="card">
+  <h2>💾 Backup</h2>
+  <div class="notice">Your progress is saved in this browser on this device. Export a backup occasionally so you don't lose your progress if browser data is cleared.</div>
+  <div class="buttons" style="margin-top:10px">
+    <button class="secondary" id="exportBtn">Export Backup</button>
+    <button class="secondary" id="importBtn">Import Backup</button>
+    <button class="danger" id="resetBtn">Reset Everything</button>
+  </div>
+</section>
+
+<div class="footer">Life RPG V1.5 • Quest Manager Edition</div>
 </div>
+
+<div class="modal" id="managerModal">
+  <div class="modal-box">
+    <div class="row"><h2>⚙️ Quest Manager</h2><button class="secondary" id="closeManager">Close</button></div>
+    <div id="managerList"></div>
+    <button style="width:100%;margin-top:12px" id="newQuestBtn">＋ Create New Quest</button>
+  </div>
+</div>
+
+<div class="modal" id="editModal">
+  <div class="modal-box">
+    <div class="row"><h2 id="editTitle">Create Quest</h2><button class="secondary" id="cancelEdit">Cancel</button></div>
+    <form id="editForm" style="display:block">
+      <input type="hidden" id="editId">
+      <label class="label">QUEST NAME</label>
+      <input id="editName" type="text" placeholder="e.g. Study for 60 minutes" required style="margin:6px 0 12px">
+      <div class="formgrid">
+        <div><label class="label">XP REWARD</label><input id="editXp" type="number" min="1" max="500" value="10" required style="margin-top:6px"></div>
+        <div><label class="label">CATEGORY</label><select id="editCategory" style="margin-top:6px"><option>School</option><option>Health</option><option>Skill</option><option>Personal</option><option>Home</option><option>Other</option></select></div>
+      </div>
+      <button style="width:100%;margin-top:14px" type="submit" id="saveQuestBtn">Save Quest</button>
+    </form>
+  </div>
+</div>
+
 <script>
-const K="life-rpg-v1";const defaults=[["Wake up on time",10],["Complete study block",30],["Finish homework / school work",20],["Skill learning",25],["Physical activity",15],["Plan tomorrow",5]];
-let s=JSON.parse(localStorage.getItem(K)||"null")||{name:"Ronin",xp:0,quests:defaults.map((q,i)=>({id:i,n:q[0],x:q[1]})),days:{}};
-const day=()=>new Date().toISOString().slice(0,10);function d(){return s.days[day()]||(s.days[day()]={})}function save(){localStorage.setItem(K,JSON.stringify(s))}
-function render(){let z=d(),lv=Math.floor(s.xp/100)+1,cur=s.xp%100;name.textContent=s.name;level.textContent=lv;xp.textContent=cur+" / 100 XP";total.textContent="Total: "+s.xp+" XP";fill.style.width=cur+"%";let tx=0,doneN=0;quests.innerHTML="";s.quests.forEach(q=>{let checked=!!z[q.id];if(checked){tx+=q.x;doneN++}let r=document.createElement("div");r.className="quest";r.innerHTML='<input type="checkbox" '+(checked?"checked":"")+'><span>'+q.n+'</span><span class="xp">+'+q.x+' XP</span>';r.querySelector("input").onchange=()=>{z[q.id]=!checked;s.xp+=checked?-q.x:q.x;if(s.xp<0)s.xp=0;save();render()};quests.appendChild(r)});today.textContent=tx;done.textContent=doneN;let st=0,t=new Date();while(true){let k=t.toISOString().slice(0,10),a=s.days[k];if(!a||!Object.values(a).some(Boolean))break;st++;t.setDate(t.getDate()-1)}streak.textContent=st;ach.innerHTML=[s.xp>=100?"🆙 Level 2":"🔒 Level 2",s.xp>=500?"⭐ 500 XP":"🔒 500 XP",st>=3?"🔥 3 Day Streak":"🔒 3 Day Streak",st>=7?"🔥 7 Day Streak":"🔒 7 Day Streak"].map(x=>"<span style='display:inline-block;background:#202a40;padding:8px;margin:4px;border-radius:9px'>"+x+"</span>").join("");save()}
-function add(e){e.preventDefault();s.quests.push({id:"q"+Date.now(),n:qn.value.trim(),x:+qx.value});e.target.reset();render()}function rename(){let n=prompt("Player name:",s.name);if(n)s.name=n.trim();render()}function backup(){let b=new Blob([JSON.stringify(s)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="life-rpg-backup.json";a.click()}function restore(){let i=document.createElement("input");i.type="file";i.accept=".json";i.onchange=()=>{let r=new FileReader();r.onload=()=>{try{s=JSON.parse(r.result);render();alert("Backup restored.")}catch{alert("Invalid backup.")}};r.readAsText(i.files[0])};i.click()}function reset(){if(confirm("Reset everything?")){localStorage.removeItem(K);location.reload()}}render();
-</script></body></html>
+const KEY="life-rpg-v1";
+const defaultQuests=[
+ {id:"wake",name:"Wake up on time",xp:10,category:"Personal"},
+ {id:"study",name:"Complete study block",xp:30,category:"School"},
+ {id:"homework",name:"Finish homework / school work",xp:20,category:"School"},
+ {id:"skill",name:"Skill learning",xp:25,category:"Skill"},
+ {id:"health",name:"Physical activity",xp:15,category:"Health"},
+ {id:"plan",name:"Plan tomorrow",xp:5,category:"Personal"}
+];
+let state=JSON.parse(localStorage.getItem(KEY)||"null")||{
+ player:"Ronin",totalXp:0,quests:defaultQuests,days:{},streak:0
+};
+if(!Array.isArray(state.quests))state.quests=[];
+state.quests=state.quests.map((q,i)=>({...q,id:q.id||("q"+i),name:q.name||q.n||"Quest",xp:Number(q.xp??q.x??10),category:q.category||"Other"}));
+const $=id=>document.getElementById(id);
+const today=()=>new Date().toISOString().slice(0,10);
+function ensureDay(){let d=today();if(!state.days[d])state.days[d]={done:{},earned:{}};if(!state.days[d].done)state.days[d].done={};if(!state.days[d].earned)state.days[d].earned={};return state.days[d]}
+function save(){localStorage.setItem(KEY,JSON.stringify(state))}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+function currentLevel(){return Math.floor(state.totalXp/100)+1}
+function calcStreak(){
+ let s=0,d=new Date();
+ while(true){
+  const k=d.toISOString().slice(0,10),day=state.days[k];
+  if(!day||!Object.values(day.done||{}).some(Boolean))break;
+  s++;d.setDate(d.getDate()-1)
+ }
+ return s
+}
+function render(){
+ const d=ensureDay(),lvl=currentLevel(),xp=state.totalXp%100;
+ $("playerName").textContent=state.player;$("level").textContent=lvl;
+ $("xpText").textContent=`${xp} / 100 XP`;$("totalXp").textContent=`Total XP: ${state.totalXp}`;
+ $("xpFill").style.width=xp+"%";state.streak=calcStreak();
+ let tx=0,done=0;const list=$("quests");list.innerHTML="";
+ if(!state.quests.length)list.innerHTML='<div class="notice">No quests yet. Open Quest Manager to create your first quest.</div>';
+ state.quests.forEach(q=>{
+   const checked=!!d.done[q.id];const earned=d.earned[q.id]??q.xp;
+   if(checked){tx+=earned;done++}
+   const row=document.createElement("div");row.className="quest"+(checked?" done":"");
+   row.innerHTML=`<input type="checkbox" ${checked?"checked":""} aria-label="Complete ${escapeHtml(q.name)}">
+   <div><div class="quest-name">${escapeHtml(q.name)}</div><span class="badge">${escapeHtml(q.category||"Other")}</span></div>
+   <div class="xp">+${earned} XP</div>`;
+   row.querySelector("input").onchange=()=>toggleQuest(q.id);
+   list.appendChild(row);
+ });
+ $("streak").textContent=state.streak;$("todayXp").textContent=tx;$("todayDone").textContent=done;
+ renderAchievements();renderManager();save();
+}
+function toggleQuest(id){
+ const d=ensureDay(),q=state.quests.find(x=>x.id===id);if(!q)return;
+ const was=!!d.done[id];
+ if(was){state.totalXp-=Number(d.earned[id]??q.xp);d.done[id]=false;delete d.earned[id]}
+ else{d.done[id]=true;d.earned[id]=Number(q.xp);state.totalXp+=Number(q.xp)}
+ if(state.totalXp<0)state.totalXp=0;render();
+}
+function quickAdd(e){
+ e.preventDefault();const name=$("quickName").value.trim(),xp=Number($("quickXp").value);
+ if(!name||!xp)return;
+ state.quests.push({id:"q"+Date.now(),name,xp,category:"Other"});
+ $("quickName").value="";$("quickXp").value=10;render();
+}
+function renderAchievements(){
+ const earned=[
+  [state.totalXp>=100,"🆙 Level 2"],[state.totalXp>=500,"⭐ 500 XP"],[state.totalXp>=1000,"🏆 1000 XP"],
+  [state.streak>=3,"🔥 3 Day Streak"],[state.streak>=7,"🔥 7 Day Streak"],
+  [Object.values(state.days).filter(d=>d&&Object.values(d.done||{}).some(Boolean)).length>=10,"📅 10 Active Days"]
+ ];
+ $("achievements").innerHTML=earned.map(a=>`<span style="display:inline-block;padding:8px 10px;border-radius:11px;background:#202a40;margin:4px;opacity:${a[0]?1:.35}">${a[1]}${a[0]?"":" 🔒"}</span>`).join("");
+}
+function renderManager(){
+ const list=$("managerList");
+ if(!state.quests.length){list.innerHTML='<div class="notice" style="margin-top:10px">No quests yet.</div>';return}
+ list.innerHTML=state.quests.map((q,i)=>`
+ <div class="manager-row">
+   <div class="manager-main"><div class="manager-name">${escapeHtml(q.name)}<div><span class="badge">${escapeHtml(q.category||"Other")} • ${q.xp} XP</span></div></div></div>
+   <div class="manager-actions">
+     <button class="small secondary" onclick="moveQuest(${i},-1)" ${i===0?"disabled":""}>↑</button>
+     <button class="small secondary" onclick="moveQuest(${i},1)" ${i===state.quests.length-1?"disabled":""}>↓</button>
+     <button class="small" onclick="openEdit('${q.id}')">✏️ Edit</button>
+     <button class="small danger" onclick="deleteQuest('${q.id}')">🗑️ Delete</button>
+   </div>
+ </div>`).join("");
+}
+function moveQuest(i,dir){
+ const j=i+dir;if(j<0||j>=state.quests.length)return;
+ [state.quests[i],state.quests[j]]=[state.quests[j],state.quests[i]];render();
+}
+function openEdit(id=null){
+ $("editModal").classList.add("open");
+ if(id){
+   const q=state.quests.find(x=>x.id===id);if(!q)return;
+   $("editTitle").textContent="✏️ Edit Quest";$("editId").value=q.id;$("editName").value=q.name;$("editXp").value=q.xp;$("editCategory").value=q.category||"Other";
+ }else{
+   $("editTitle").textContent="＋ Create Quest";$("editId").value="";$("editName").value="";$("editXp").value=10;$("editCategory").value="Other";
+ }
+ $("editName").focus();
+}
+function saveQuest(e){
+ e.preventDefault();const id=$("editId").value,name=$("editName").value.trim(),xp=Number($("editXp").value),category=$("editCategory").value;
+ if(!name||!xp)return;
+ if(id){
+   const q=state.quests.find(x=>x.id===id);if(q){q.name=name;q.xp=xp;q.category=category}
+ }else state.quests.push({id:"q"+Date.now(),name,xp,category});
+ $("editModal").classList.remove("open");render();
+}
+function deleteQuest(id){
+ const q=state.quests.find(x=>x.id===id);if(!q)return;
+ if(!confirm(`Delete "${q.name}"? Its old history will remain in your backup, but the quest will disappear from your active list.`))return;
+ state.quests=state.quests.filter(x=>x.id!==id);render();
+}
+function changeName(){const n=prompt("Player name:",state.player);if(n&&n.trim()){state.player=n.trim();render()}}
+function exportData(){
+ const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"}),a=document.createElement("a");
+ a.href=URL.createObjectURL(blob);a.download="life-rpg-backup.json";a.click();URL.revokeObjectURL(a.href)
+}
+function importData(){
+ const input=document.createElement("input");input.type="file";input.accept=".json,application/json";
+ input.onchange=()=>{const file=input.files[0];if(!file)return;const r=new FileReader();r.onload=()=>{try{
+   const x=JSON.parse(r.result);if(!x||typeof x.totalXp!=="number"||!Array.isArray(x.quests))throw 0;
+   state=x;state.quests=state.quests.map((q,i)=>({...q,id:q.id||("q"+i),name:q.name||q.n||"Quest",xp:Number(q.xp??q.x??10),category:q.category||"Other"}));
+   render();alert("Backup imported successfully.");
+ }catch{alert("That backup file is not valid.")}};r.readAsText(file)
+ };input.click()
+}
+function resetData(){
+ if(confirm("Reset all Life RPG progress on this device? This cannot be undone unless you have a backup.")){
+  localStorage.removeItem(KEY);location.reload();
+ }
+}
+$("quickForm").addEventListener("submit",quickAdd);
+$("playerBtn").onclick=changeName;$("openManager").onclick=()=>$("managerModal").classList.add("open");
+$("closeManager").onclick=()=>$("managerModal").classList.remove("open");
+$("newQuestBtn").onclick=()=>openEdit();$("cancelEdit").onclick=()=>$("editModal").classList.remove("open");
+$("editForm").addEventListener("submit",saveQuest);$("exportBtn").onclick=exportData;$("importBtn").onclick=importData;$("resetBtn").onclick=resetData;
+$("managerModal").addEventListener("click",e=>{if(e.target.id==="managerModal")$("managerModal").classList.remove("open")});
+$("editModal").addEventListener("click",e=>{if(e.target.id==="editModal")$("editModal").classList.remove("open")});
+render();
+</script>
+</body>
+</html>
