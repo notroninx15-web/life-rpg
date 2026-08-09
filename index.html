@@ -125,7 +125,17 @@ const defaultQuests=[
 let state=JSON.parse(localStorage.getItem(KEY)||"null")||{
  player:"Ronin",totalXp:0,quests:defaultQuests,days:{},streak:0
 };
-if(!Array.isArray(state.quests))state.quests=[];
+
+// Migrate older Life RPG V1 browser data safely.
+// V1 used a different XP field, so prevent NaN/undefined after upgrading.
+if(!state || typeof state!=="object") state={};
+if(typeof state.player!=="string" || !state.player.trim()) state.player="Ronin";
+if(typeof state.totalXp!=="number" || !Number.isFinite(state.totalXp)){
+  const legacyXp=Number(state.xp);
+  state.totalXp=Number.isFinite(legacyXp)?legacyXp:0;
+}
+if(!state.days || typeof state.days!=="object") state.days={};
+if(!Array.isArray(state.quests)) state.quests=[];
 state.quests=state.quests.map((q,i)=>({...q,id:q.id||("q"+i),name:q.name||q.n||"Quest",xp:Number(q.xp??q.x??10),category:q.category||"Other"}));
 const $=id=>document.getElementById(id);
 const today=()=>new Date().toISOString().slice(0,10);
